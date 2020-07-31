@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/marccampbell/k8s-arm-first/pkg/logger"
+	"github.com/marccampbell/graviton-scheduler-extender/pkg/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"k8s.io/cli-runtime/pkg/genericclioptions"

@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: k8s-arm-first
+  name: graviton-scheduler-extender
   namespace: kube-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: k8s-arm-first-cluster-admin
+  name: graviton-scheduler-extender-cluster-admin
   namespace: kube-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -16,32 +16,32 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     namespace: kube-system
-    name: k8s-arm-first
+    name: graviton-scheduler-extender
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: k8s-arm-first-config
+  name: graviton-scheduler-extender-config
   namespace: kube-system
 data:
   config.yaml: |
     apiVersion: kubescheduler.config.k8s.io/v1alpha1
     kind: KubeSchedulerConfiguration
-    schedulerName: k8s-arm-first
+    schedulerName: graviton-scheduler-extender
     algorithmSource:
       policy:
         configMap:
           namespace: kube-system
-          name: k8s-arm-first-policy
+          name: graviton-scheduler-extender-policy
     leaderElection:
       leaderElect: true
-      lockObjectName: k8s-arm-first
+      lockObjectName: graviton-scheduler-extender
       lockObjectNamespace: kube-system
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: k8s-arm-first-policy
+  name: graviton-scheduler-extender-policy
   namespace: kube-system
 data:
  policy.cfg : |
@@ -77,37 +77,37 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: k8s-arm-first
+  name: graviton-scheduler-extender
   namespace: kube-system
   labels:
-    app: k8s-arm-first
+    app: graviton-scheduler-extender
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: k8s-arm-first
+      app: graviton-scheduler-extender
   template:
     metadata:
       labels:
-        app: k8s-arm-first
+        app: graviton-scheduler-extender
     spec:
-      serviceAccountName: k8s-arm-first
+      serviceAccountName: graviton-scheduler-extender
       volumes:
-      - name: k8s-arm-first-config
+      - name: graviton-scheduler-extender-config
         configMap:
-          name: k8s-arm-first-config
+          name: graviton-scheduler-extender-config
       containers:
-      - name: k8s-arm-first-ctr
+      - name: graviton-scheduler-extender-ctr
         image: gcr.io/google_containers/hyperkube:v1.16.3
         imagePullPolicy: IfNotPresent
         args:
         - kube-scheduler
-        - --config=/k8s-arm-first/config.yaml
+        - --config=/graviton-scheduler-extender/config.yaml
         - -v=4
         volumeMounts:
-        - name: k8s-arm-first-config
-          mountPath: /k8s-arm-first
-      - name: k8s-arm-first-extender-ctr
+        - name: graviton-scheduler-extender-config
+          mountPath: /graviton-scheduler-extender
+      - name: graviton-scheduler-extender-extender-ctr
         image: a/b:c
         imagePullPolicy: IfNotPresent
         livenessProbe:

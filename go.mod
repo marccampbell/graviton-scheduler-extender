@@ -1,4 +1,4 @@
-module k8s-arm-first
+module graviton-scheduler-extender
 
 go 1.14
 

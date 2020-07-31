@@ -7,7 +7,7 @@ test:
 
 .PHONY: bin
 bin: fmt vet
-	go build -o bin/k8s-arm-first github.com/marccampbell/k8s-arm-first/cmd/arm-first
+	go build -o bin/graviton-scheduler-extender github.com/marccampbell/graviton-scheduler-extender/cmd/graviton-scheduler-extender
 
 .PHONY: fmt
 fmt:
