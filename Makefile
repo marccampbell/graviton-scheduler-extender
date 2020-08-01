@@ -17,3 +17,8 @@ fmt:
 vet:
 	go vet ./pkg/... ./cmd/...
 
+.PHONY: run
+run:
+	docker build -t localhost:32000/graviton-scheduler-extender:latest .
+	docker push localhost:32000/graviton-scheduler-extender:latest
+	kubectl apply -f ./install/graviton-scheduler-extender.yaml

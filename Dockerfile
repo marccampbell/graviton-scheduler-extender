@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine as builder
+FROM golang:1.14 as builder
 ARG VERSION=0.0.1
 
 ENV GO111MODULE=on
@@ -16,5 +16,5 @@ RUN make bin
 
 # runtime image
 FROM gcr.io/google_containers/ubuntu-slim:0.14
-COPY --from=builder /go/bin/graviton-scheduler-extender /usr/bin/graviton-scheduler-extender
-ENTRYPOINT ["graviton-scheduler-extender"]
+COPY --from=builder /go/src/marccampbell/graviton-scheduler-extender/bin//graviton-scheduler-extender /usr/bin/graviton-scheduler-extender
+ENTRYPOINT ["/usr/bin/graviton-scheduler-extender"]

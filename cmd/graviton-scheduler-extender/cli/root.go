@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/marccampbell/graviton-scheduler-extender/pkg/extender"
 	"github.com/marccampbell/graviton-scheduler-extender/pkg/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,6 +31,7 @@ func RootCmd() *cobra.Command {
 			log := logger.NewLogger()
 			log.Info("")
 
+			extender.Run()
 			return nil
 		},
 	}

@@ -3,7 +3,7 @@ kind: Pod
 metadata:
   name: test-pod
 spec:
-  schedulerName: my-scheduler
+  # schedulerName: graviton-scheduler-extender
   containers:
   - name: nginx
     image: nginx

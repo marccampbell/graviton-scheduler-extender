@@ -27,7 +27,7 @@ data:
   config.yaml: |
     apiVersion: kubescheduler.config.k8s.io/v1alpha1
     kind: KubeSchedulerConfiguration
-    schedulerName: graviton-scheduler-extender
+    # schedulerName: graviton-scheduler-extender
     algorithmSource:
       policy:
         configMap:
@@ -108,8 +108,8 @@ spec:
         - name: graviton-scheduler-extender-config
           mountPath: /graviton-scheduler-extender
       - name: graviton-scheduler-extender-extender-ctr
-        image: a/b:c
-        imagePullPolicy: IfNotPresent
+        image: localhost:32000/graviton-scheduler-extender:latest
+        imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /version
