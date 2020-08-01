@@ -19,6 +19,7 @@ vet:
 
 .PHONY: run
 run:
-	docker build -t localhost:32000/graviton-scheduler-extender:latest .
-	docker push localhost:32000/graviton-scheduler-extender:latest
+	kubectl delete -f ./install/graviton-scheduler-extender.yaml || true
+	docker build -t ttl.sh/graviton-scheduler-extender:24h .
+	docker push ttl.sh/graviton-scheduler-extender:24h
 	kubectl apply -f ./install/graviton-scheduler-extender.yaml

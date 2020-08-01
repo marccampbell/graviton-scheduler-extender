@@ -27,7 +27,6 @@ data:
   config.yaml: |
     apiVersion: kubescheduler.config.k8s.io/v1alpha1
     kind: KubeSchedulerConfiguration
-    # schedulerName: graviton-scheduler-extender
     algorithmSource:
       policy:
         configMap:
@@ -63,8 +62,8 @@ data:
     ],
     "extenders" : [{
       "urlPrefix": "http://localhost/scheduler",
-      "filterVerb": "predicates/always_true",
-      "prioritizeVerb": "priorities/zero_score",
+      "filterVerb": "predicates/filter_graviton2",
+      "prioritizeVerb": "priorities/prefer_graviton2",
       "preemptVerb": "preemption",
       "bindVerb": "",
       "weight": 1,
@@ -91,14 +90,27 @@ spec:
       labels:
         app: graviton-scheduler-extender
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: "kubernetes.io/os"
+                operator: In
+                values:
+                - linux
+              - key: "kubernetes.io/arch"
+                operator: In
+                values:
+                - amd64
       serviceAccountName: graviton-scheduler-extender
       volumes:
       - name: graviton-scheduler-extender-config
         configMap:
           name: graviton-scheduler-extender-config
       containers:
-      - name: graviton-scheduler-extender-ctr
-        image: gcr.io/google_containers/hyperkube:v1.16.3
+      - name: connector
+        image: gcr.io/google-containers/kube-scheduler-amd64:v1.16.13
         imagePullPolicy: IfNotPresent
         args:
         - kube-scheduler
@@ -107,8 +119,8 @@ spec:
         volumeMounts:
         - name: graviton-scheduler-extender-config
           mountPath: /graviton-scheduler-extender
-      - name: graviton-scheduler-extender-extender-ctr
-        image: localhost:32000/graviton-scheduler-extender:latest
+      - name: extender
+        image: ttl.sh/graviton-scheduler-extender:24h
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

@@ -15,6 +15,7 @@ COPY . .
 RUN make bin
 
 # runtime image
-FROM gcr.io/google_containers/ubuntu-slim:0.14
+FROM alpine:3.12.0
+RUN apk add ca-certificates
 COPY --from=builder /go/src/marccampbell/graviton-scheduler-extender/bin//graviton-scheduler-extender /usr/bin/graviton-scheduler-extender
 ENTRYPOINT ["/usr/bin/graviton-scheduler-extender"]

@@ -3,6 +3,7 @@ package extender
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -13,20 +14,24 @@ import (
 	extenderapi "k8s.io/kube-scheduler/extender/v1"
 )
 
-func checkBody(w http.ResponseWriter, r *http.Request) {
+func requireBodyMiddleware(w http.ResponseWriter, r *http.Request) error {
 	if r.Body == nil {
-		http.Error(w, "Please send a request body", 400)
-		return
+		err := errors.New("missing request body")
+		http.Error(w, err.Error(), 400)
+		return err
 	}
+
+	return nil
 }
 
 func PredicateRoute(predicate Predicate) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		checkBody(w, r)
+		if err := requireBodyMiddleware(w, r); err != nil {
+			panic(err)
+		}
 
 		var buf bytes.Buffer
 		body := io.TeeReader(r.Body, &buf)
-		log.Print("info: ", predicate.Name, " ExtenderArgs = ", buf.String())
 
 		var extenderArgs extenderapi.ExtenderArgs
 		var extenderFilterResult *extenderapi.ExtenderFilterResult
@@ -41,26 +46,25 @@ func PredicateRoute(predicate Predicate) httprouter.Handle {
 			extenderFilterResult = predicate.Handler(extenderArgs)
 		}
 
-		fmt.Printf("%#v\n", extenderArgs.Pod)
-
-		if resultBody, err := json.Marshal(extenderFilterResult); err != nil {
+		resultBody, err := json.Marshal(extenderFilterResult)
+		if err != nil {
 			panic(err)
-		} else {
-			// log.Print("info: ", predicate.Name, " extenderFilterResult = ", string(resultBody))
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write(resultBody)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(resultBody)
 	}
 }
 
 func PrioritizeRoute(prioritize Prioritize) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		checkBody(w, r)
+		if err := requireBodyMiddleware(w, r); err != nil {
+			panic(err)
+		}
 
 		var buf bytes.Buffer
 		body := io.TeeReader(r.Body, &buf)
-		log.Print("info: ", prioritize.Name, " ExtenderArgs = ", buf.String())
 
 		var extenderArgs extenderapi.ExtenderArgs
 		var hostPriorityList *extenderapi.HostPriorityList
@@ -69,26 +73,30 @@ func PrioritizeRoute(prioritize Prioritize) httprouter.Handle {
 			panic(err)
 		}
 
-		if list, err := prioritize.Handler(extenderArgs); err != nil {
+		list, err := prioritize.Handler(extenderArgs)
+		if err != nil {
 			panic(err)
-		} else {
-			hostPriorityList = list
 		}
 
-		if resultBody, err := json.Marshal(hostPriorityList); err != nil {
+		hostPriorityList = list
+
+		resultBody, err := json.Marshal(hostPriorityList)
+		if err != nil {
 			panic(err)
-		} else {
-			log.Print("info: ", prioritize.Name, " hostPriorityList = ", string(resultBody))
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write(resultBody)
 		}
+
+		log.Print("info: ", prioritize.Name, " hostPriorityList = ", string(resultBody))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(resultBody)
 	}
 }
 
 func BindRoute(bind Bind) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		checkBody(w, r)
+		if err := requireBodyMiddleware(w, r); err != nil {
+			panic(err)
+		}
 
 		var buf bytes.Buffer
 		body := io.TeeReader(r.Body, &buf)
@@ -118,7 +126,9 @@ func BindRoute(bind Bind) httprouter.Handle {
 
 func PreemptionRoute(preemption Preemption) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		checkBody(w, r)
+		if err := requireBodyMiddleware(w, r); err != nil {
+			panic(err)
+		}
 
 		var buf bytes.Buffer
 		body := io.TeeReader(r.Body, &buf)

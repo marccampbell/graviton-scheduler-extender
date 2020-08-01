@@ -27,16 +27,41 @@ const (
 var (
 	version string // injected via ldflags at build time
 
-	TruePredicate = Predicate{
-		Name: "always_true",
+	Graviton2Filter = Predicate{
+		Name: "filter_graviton2",
 		Func: func(pod v1.Pod, node v1.Node) (bool, error) {
+			podArchitectureCounts, err := architectureForPod(pod)
+			if err != nil {
+				panic(err)
+			}
+
+			nodeArchitecture, err := getNodeArchitecture(node)
+			if err != nil {
+				panic(err)
+			}
+
+			// TODO There are additional architectures and OS considerations here
+			log.Print("info: ", "filter_graviton2", "podArchitectureCounts = ", podArchitectureCounts, "nodeArchitecture = ", nodeArchitecture)
+
+			if nodeArchitecture == "amd64" {
+				if podArchitectureCounts.CountTotal > podArchitectureCounts.CountAmd64 {
+					return false, nil
+				}
+			}
+
+			if nodeArchitecture == "arm64" {
+				if podArchitectureCounts.CountTotal > podArchitectureCounts.CountArm64 {
+					return false, nil
+				}
+			}
+
 			return true, nil
 		},
 	}
 
-	ZeroPriority = Prioritize{
-		Name: "zero_score",
-		Func: func(_ v1.Pod, nodes []v1.Node) (*extenderapi.HostPriorityList, error) {
+	Graviton2Priority = Prioritize{
+		Name: "prefer_graviton2",
+		Func: func(pod v1.Pod, nodes []v1.Node) (*extenderapi.HostPriorityList, error) {
 			var priorityList extenderapi.HostPriorityList
 			priorityList = make([]extenderapi.HostPriority, len(nodes))
 			for i, node := range nodes {
@@ -56,11 +81,7 @@ var (
 	}
 
 	EchoPreemption = Preemption{
-		Func: func(
-			_ v1.Pod,
-			_ map[string]*extenderapi.Victims,
-			nodeNameToMetaVictims map[string]*extenderapi.MetaVictims,
-		) map[string]*extenderapi.MetaVictims {
+		Func: func(_ v1.Pod, _ map[string]*extenderapi.Victims, nodeNameToMetaVictims map[string]*extenderapi.MetaVictims) map[string]*extenderapi.MetaVictims {
 			return nodeNameToMetaVictims
 		},
 	}
@@ -81,7 +102,7 @@ func StringToLevel(levelStr string) colog.Level {
 	case "ALERT":
 		return colog.LAlert
 	default:
-		log.Printf("warning: LOG_LEVEL=\"%s\" is empty or invalid, fallling back to \"INFO\".\n", level)
+		log.Printf("warning: LOG_LEVEL=\"%s\" is empty or invalid, falling back to \"INFO\".\n", level)
 		return colog.LInfo
 	}
 }
@@ -101,12 +122,12 @@ func Run() {
 	router := httprouter.New()
 	AddVersion(router)
 
-	predicates := []Predicate{TruePredicate}
+	predicates := []Predicate{Graviton2Filter}
 	for _, p := range predicates {
 		AddPredicate(router, p)
 	}
 
-	priorities := []Prioritize{ZeroPriority}
+	priorities := []Prioritize{Graviton2Priority}
 	for _, p := range priorities {
 		AddPrioritize(router, p)
 	}

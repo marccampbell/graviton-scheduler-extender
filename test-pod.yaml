@@ -3,9 +3,8 @@ kind: Pod
 metadata:
   name: test-pod
 spec:
-  # schedulerName: graviton-scheduler-extender
   containers:
-  - name: nginx
-    image: nginx
-    ports:
-    - containerPort: 80
+  # - name: both
+  #   image: nginx
+  - name: amdonly
+    image: kotsadm/kotsadm:v1.17.2
