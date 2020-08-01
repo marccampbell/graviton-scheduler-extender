@@ -26,7 +26,7 @@ func RootCmd() *cobra.Command {
 			viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			v := viper.GetViper()
+			// v := viper.GetViper()
 			log := logger.NewLogger()
 			log.Info("")
 

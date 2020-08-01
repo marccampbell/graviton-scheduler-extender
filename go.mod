@@ -1,7 +1,3 @@
-module graviton-scheduler-extender
-
-go 1.14
-
 replace (
 	k8s.io/api => k8s.io/api v0.17.0
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.17.0
@@ -37,3 +33,7 @@ require (
 	k8s.io/cli-runtime v0.17.0
 	k8s.io/kubernetes v1.17.0
 )
+
+module github.com/marccampbell/graviton-scheduler-extender
+
+go 1.14
